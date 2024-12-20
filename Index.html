@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #71b7e6, #9b59b6);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+        .scoreboard {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            width: 600px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .team {
+            margin: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .team input {
+            font-size: 1.5em;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+        }
+        .score {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .score span {
+            margin: 0 20px;
+        }
+        .score button {
+            font-size: 0.8em;
+            padding: 5px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            background-color: #007bff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .score button:hover {
+            background-color: #0056b3;
+        }
+        .score button.decrease {
+            margin-right: 20px;
+        }
+        .score button.increase {
+            margin-left: 20px;
+        }
+        button {
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .timer {
+            margin-top: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+        .timer div {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .timer button {
+            margin-left: 10px;
+            font-size: 1em;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="scoreboard" id="scoreboard">
+        <div class="team" id="team1">
+            <input type="text" id="team1-name" placeholder="Team 1 Name">
+            <div class="score">
+                <button class="decrease" onclick="decreaseScore('team1')">-</button>
+                <span id="team1-score">0</span>
+                <button class="increase" onclick="increaseScore('team1')">+</button>
+            </div>
+            <div class="timer" id="team1-timers">
+            </div>
+            <button id="add-timer-team1" onclick="addTimer('team1')">Adicionar Timer</button>
+        </div>
+        <div class="team" id="team2">
+            <input type="text" id="team2-name" placeholder="Team 2 Name">
+            <div class="score">
+                <button class="decrease" onclick="decreaseScore('team2')">-</button>
+                <span id="team2-score">0</span>
+                <button class="increase" onclick="increaseScore('team2')">+</button>
+            </div>
+            <div class="timer" id="team2-timers">
+            </div>
+            <button id="add-timer-team2" onclick="addTimer('team2')">Adicionar Timer</button>
+        </div>
+    </div>
+
+    <script>
+        function increaseScore(team) {
+            const scoreElement = document.getElementById(`${team}-score`);
+            let score = parseInt(scoreElement.textContent);
+            scoreElement.textContent = score + 1;
+        }
+    
+        function decreaseScore(team) {
+            const scoreElement = document.getElementById(`${team}-score`);
+            let score = parseInt(scoreElement.textContent);
+            if (score > 0) {
+                scoreElement.textContent = score - 1;
+            }
+        }
+    
+        const teamTimers = { team1: 0, team2: 0 }; 
+        const timerIntervals = {};
+    
+        function addFoul(team, timerId) {
+            const timerElement = document.getElementById(`${team}-timer-${timerId}`);
+    
+            if (timerElement.textContent === '0:00' || !timerIntervals[`${team}-${timerId}`]) {
+                timerElement.textContent = '2:00';  
+                startTimer(team, timerId);  
+            }
+        }
+    
+        function startTimer(team, timerId) {
+            const timerElement = document.getElementById(`${team}-timer-${timerId}`);
+    
+            if (timerIntervals[`${team}-${timerId}`]) return;
+    
+            timerIntervals[`${team}-${timerId}`] = setInterval(() => {
+                let [minutes, seconds] = timerElement.textContent.split(':').map(Number);
+    
+                if (minutes === 0 && seconds === 0) {
+                    clearInterval(timerIntervals[`${team}-${timerId}`]);
+                    timerIntervals[`${team}-${timerId}`] = null;
+                } else {
+                    if (seconds === 0) {
+                        minutes--;
+                        seconds = 59;
+                    } else {
+                        seconds--;
+                    }
+                }
+    
+                timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+    
+        function addTimer(team) {
+            if (teamTimers[team] >= 4) {
+                document.getElementById(`add-timer-${team}`).style.display = 'none'; 
+                return;
+            }
+    
+            teamTimers[team]++;
+            const timersContainer = document.getElementById(`${team}-timers`);
+    
+            const newTimer = document.createElement('div');
+            newTimer.innerHTML = `
+                <span id="${team}-timer-${teamTimers[team]}">0:00</span> <!-- Inicializa com 0:00 -->
+                <button onclick="addFoul('${team}', ${teamTimers[team]})">Falta</button>
+            `;
+    
+            timersContainer.appendChild(newTimer);
+    
+            if (teamTimers[team] === 4) {
+                document.getElementById(`add-timer-${team}`).style.display = 'none'; 
+            }
+        }
+    </script>    
+</body>
+</html>
