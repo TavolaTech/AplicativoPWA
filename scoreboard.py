@@ -19,9 +19,11 @@ class PenaltyTimer:
             self.time_left -= 1
             minutes = self.time_left // 60
             seconds = self.time_left % 60
-            self.label.config(text=f"{minutes}:{seconds:02d}")
+            self.label.config(text=f"{minutes}:{seconds:02d}")""
+            return True
         else:
             self.frame.destroy()
+            return False
 
 class HandballScoreboard:
     def __init__(self, root):
@@ -281,8 +283,8 @@ class HandballScoreboard:
             self.timer_label.config(text=f"{minutes:02d}:{seconds:02d}")
             
             # Update all penalty timers
-            for penalty in self.penalties_team1 + self.penalties_team2:
-                penalty.update()
+            self.penalties_team1 = [p for p in self.penalties_team1 if p.update()]
+            self.penalties_team2 = [p for p in self.penalties_team2 if p.update()]
             
             self.root.after(1000, self.update_timer)
         elif self.game_time <= 0:
