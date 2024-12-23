@@ -19,7 +19,7 @@ class PenaltyTimer:
             self.time_left -= 1
             minutes = self.time_left // 60
             seconds = self.time_left % 60
-            self.label.config(text=f"{minutes}:{seconds:02d}")""
+            self.label.config(text=f"{minutes}:{seconds:02d}")
             return True
         else:
             self.frame.destroy()
