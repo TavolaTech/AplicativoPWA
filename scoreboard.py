@@ -1,15 +1,19 @@
 import tkinter as tk
-from tkinter import ttk, simpledialog, messagebox
+from tkinter import simpledialog, messagebox
 from typing import List
+from PIL import Image, ImageTk
 
 class PenaltyTimer:
-    def __init__(self, parent, delete_callback):
+    def __init__(self, parent, delete_callback, player_number):
         self.time_left = 120  # 2 minutes in seconds
         self.frame = tk.Frame(parent, bg="black")
         self.frame.pack(pady=2)
         
         self.label = tk.Label(self.frame, text="2:00", font=("Digital-7", 20), fg="red", bg="black")
         self.label.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.player_label = tk.Label(self.frame, text=f"Jogador {player_number}", font=("Arial", 20), fg="white", bg="black")
+        self.player_label.pack(side=tk.LEFT, padx=(0, 10))
         
         self.delete_button = tk.Button(self.frame, text="❌", command=delete_callback, bg="red", fg="white")
         self.delete_button.pack(side=tk.LEFT)
@@ -33,22 +37,26 @@ class HandballScoreboard:
         
         # Set full screen
         self.root.attributes('-fullscreen', True)
-        
+
         # Variáveis do placar
         self.score_team1 = 0
         self.score_team2 = 0
-        self.game_time = 30 * 60  # 30 minutos em segundos
+        self.game_time = 0  # Começa em 0 segundos
         self.timer_running = False
         self.current_period = 1
         self.penalties_team1: List[PenaltyTimer] = []
         self.penalties_team2: List[PenaltyTimer] = []
         
-        self.setup_ui()
-        
-    def setup_ui(self):
         # Frame principal
         main_frame = tk.Frame(self.root, bg='black')
         main_frame.place(relx=0.5, rely=0.5, anchor='center')
+
+        self.logo_image = Image.open("logo.png")
+        self.logo_image = self.logo_image.resize((250, 250))
+        self.logo = ImageTk.PhotoImage(self.logo_image)
+        
+        self.logo_label = tk.Label(self.root, image=self.logo, bg='black')
+        self.logo_label.place(relx=1.0, rely=0.0, anchor='ne')
         
         # Timer principal e controles
         self.setup_timer_and_controls(main_frame)
@@ -79,7 +87,7 @@ class HandballScoreboard:
         # Timer principal
         self.timer_label = tk.Label(
             timer_frame, 
-            text="30:00", 
+            text="00:00",
             font=("Digital-7", 80),
             fg="red",
             bg="black"
@@ -99,7 +107,7 @@ class HandballScoreboard:
         # Botão de opções
         self.options_button = tk.Button(
             timer_frame,
-            text="...",
+            text=" ...",
             command=self.show_options,
             font=("Arial", 30),
             bg="white"
@@ -108,9 +116,7 @@ class HandballScoreboard:
         
     def setup_team_names(self, parent):
         team_names_frame = tk.Frame(parent, bg="black")
-        team_names_frame.pack(pady=20)
-        
-        # Time 1
+        team_names_frame.pack(pady=20) # Time 1
         self.team1_label = tk.Label(
             team_names_frame,
             text="Time 1",
@@ -235,10 +241,10 @@ class HandballScoreboard:
             font=("Arial", 30),
             bg="white"
         ).pack(side=tk.LEFT, padx=20)
-        
+
     def change_team_name(self, team_number):
         current_name = self.team1_label.cget("text") if team_number == 1 else self.team2_label.cget("text")
-        new_name = simpledialog.askstring("Mudar Nome", f"Digite o novo nome para o {current_name}:")
+        new_name = simpledialog.askstring("Mudar Nome", f"Digite o novo nome para o {current_name}")
         if new_name:
             if team_number == 1:
                 self.team1_label.config(text=new_name)
@@ -248,19 +254,24 @@ class HandballScoreboard:
     def update_score(self, team: int, value: int):
         if team == 1:
             self.score_team1 = max(0, self.score_team1 + value)
-            self.score1_label.config(text=str(self.score_team1))
+            self.score1_label.config(text=str (self.score_team1))
         else:
             self.score_team2 = max(0, self.score_team2 + value)
             self.score2_label.config(text=str(self.score_team2))
-            
+        
     def add_penalty(self, team: int):
-        if team == 1 and len(self.penalties_team1) < 4:
-            penalty = PenaltyTimer(self.penalty_frame1, lambda: self.remove_penalty(1, penalty))
-            self.penalties_team1.append(penalty)
-        elif team == 2 and len(self.penalties_team2) < 4:
-            penalty = PenaltyTimer(self.penalty_frame2, lambda: self.remove_penalty(2, penalty))
-            self.penalties_team2.append(penalty)
-                
+        if (team == 1 and len(self.penalties_team1) < 4) or (team == 2 and len(self.penalties_team2) < 4):
+            player_number = simpledialog.askinteger("Número do Jogador", "Digite o número do jogador que tomou a penalidade")
+            if player_number is not None:
+                if team == 1:
+                    penalty = PenaltyTimer(self.penalty_frame1, lambda: self.remove_penalty(1, penalty), player_number)
+                    self.penalties_team1.append(penalty)
+                else:
+                    penalty = PenaltyTimer(self.penalty_frame2, lambda: self.remove_penalty(2, penalty), player_number)
+                    self.penalties_team2.append(penalty)
+        else:
+            messagebox.showinfo("Limite de Penalidades", "Já existem 4 penalidades em contagem. Para adicionar uma nova, finalize uma ou mais penalidades.")
+
     def remove_penalty(self, team: int, penalty: PenaltyTimer):
         if team == 1:
             self.penalties_team1.remove(penalty)
@@ -276,30 +287,36 @@ class HandballScoreboard:
             self.update_timer()
             
     def update_timer(self):
-        if self.timer_running and self.game_time > 0:
-            self.game_time -= 1
+        if self.timer_running:
+            self.game_time += 1  # Adiciona 1 segundo ao tempo do jogo
             minutes = self.game_time // 60
             seconds = self.game_time % 60
             self.timer_label.config(text=f"{minutes:02d}:{seconds:02d}")
             
-            # Update all penalty timers
+            # Verifica se atingiu 30 minutos no primeiro período
+            if self.current_period == 1 and self.game_time >= 30 * 60:
+                self.current_period = 2
+                self.period_label.config(text="2º")
+                self.game_time = 0  # Reseta para 0 segundos
+                self.timer_running = False  # Pausa o temporizador
+                self.timer_label.config(text="00:00")
+                self.start_button.config(text="▶")
+            
+            # Verifica se atingiu 30 minutos no segundo período
+            elif self.current_period == 2 and self.game_time >= 30 * 60:
+                self.timer_running = False  # Pausa o temporizador
+                self.timer_label.config(text="30:00")
+            
+            # Atualiza todos os temporizadores de penalidade
             self.penalties_team1 = [p for p in self.penalties_team1 if p.update()]
             self.penalties_team2 = [p for p in self.penalties_team2 if p.update()]
             
             self.root.after(1000, self.update_timer)
-        elif self.game_time <= 0:
-            self.timer_running = False
-            self.start_button.config(text="▶")
-            if self.current_period == 1:
-                self.current_period = 2
-                self.period_label.config(text="2º")
-                self.game_time = 30 * 60
-                self.timer_label.config(text="30:00")
-                
+
     def reset_timer(self):
         self.timer_running = False
-        self.game_time = 30 * 60
-        self.timer_label.config(text="30:00")
+        self.game_time = 0  # Reseta para 0 segundos
+        self.timer_label.config(text="00:00")
         self.start_button.config(text="▶")
         
         # Reset game score
@@ -321,7 +338,6 @@ class HandballScoreboard:
         else:
             self.current_period = 1
             self.period_label.config(text="1º")
-        self.reset_timer()
         
     def toggle_fullscreen(self):
         self.root.attributes('-fullscreen', not self.root.attributes('-fullscreen'))
@@ -401,4 +417,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = HandballScoreboard(root)
     root.mainloop()
-
