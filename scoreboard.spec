@@ -5,7 +5,7 @@ a = Analysis(
     ['scoreboard.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:/Users/netoz/Desktop/Projetos/Tavola/AplicativoPWA/logo.png', '.')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\netoz\\Desktop\\Projetos\\Tavola\\AplicativoPWA\\handball.ico'],
+    icon=['logo.ico'],
 )
