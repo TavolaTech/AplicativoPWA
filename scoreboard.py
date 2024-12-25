@@ -319,18 +319,6 @@ class HandballScoreboard:
         self.timer_label.config(text="00:00")
         self.start_button.config(text="▶")
         
-        # Reset game score
-        self.score_team1 = 0
-        self.score_team2 = 0
-        self.score1_label.config(text="0")
-        self.score2_label.config(text="0")
-        
-        # Clear all penalties
-        for penalty in self.penalties_team1 + self.penalties_team2:
-            penalty.frame.destroy()
-        self.penalties_team1.clear()
-        self.penalties_team2.clear()
-        
     def change_period(self):
         if self.current_period == 1:
             self.current_period = 2
