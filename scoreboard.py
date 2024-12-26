@@ -260,7 +260,7 @@ class HandballScoreboard:
             self.score2_label.config(text=str(self.score_team2))
         
     def add_penalty(self, team: int):
-        if (team == 1 and len(self.penalties_team1) < 4) or (team == 2 and len(self.penalties_team2) < 4):
+        if (team == 1 and len(self.penalties_team1) < 6) or (team == 2 and len(self.penalties_team2) < 6):
             player_number = simpledialog.askinteger("Número do Jogador", "Digite o número do jogador que tomou a penalidade")
             if player_number is not None:
                 if team == 1:
